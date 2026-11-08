@@ -17,7 +17,10 @@ const STORAGE_ENV_VARIABLE: &str = "HASHB_DEFAULT_STORAGE";
 
 fn system_storage_dir() -> Result<PathBuf> {
     let dirs = ProjectDirs::from("", "", "hashb").ok_or_else(|| {
-        io::Error::other("Could not determine the default application data directory.")
+        io::Error::other(format!(
+            "Could not determine the default application data directory. \
+             Set the {STORAGE_ENV_VARIABLE} environment variable to specify a storage directory."
+        ))
     })?;
 
     Ok(dirs.data_local_dir().to_path_buf())
