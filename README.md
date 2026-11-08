@@ -45,17 +45,17 @@ If the configured directory does not exist, `hashb` creates it automatically.
 
 **Custom storage directory**
 
-Use the `--store` flag to specify a storage directory for an individual command:
+Use the `--path` flag to specify a storage directory for an individual command:
 
 ```bash
-cargo run -- --store <directory> put <file_path>
+cargo run -- --path <directory> put <file_path>
 ```
 
-Unlike the default storage directory, a directory explicitly specified through `--store` must already exist.
+Unlike the default storage directory, a directory explicitly specified through `--path` must already exist.
 
 Storage locations are resolved in the following order of precedence:
 
-1. `--store` command-line argument
+1. `--path` command-line argument
 2. `HASHB_DEFAULT_STORAGE` environment variable
 3. Platform-specific application data directory
 

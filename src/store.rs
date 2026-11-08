@@ -50,7 +50,7 @@ pub struct ObjectStore {
 impl ObjectStore {
     pub fn new(root: Option<impl AsRef<Path>>) -> Result<Self> {
         // Choose system storage directory unless specified by the user
-        // using `--store` option.
+        // using `--path` option.
         let root_path = match root {
             Some(path) if path.as_ref().is_dir() => path.as_ref().to_path_buf(),
             Some(path) => {

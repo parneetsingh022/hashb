@@ -7,7 +7,7 @@ use clap::{Parser, Subcommand};
 pub struct Cli {
     /// Provide a custom storage directory path
     #[arg(long, short, global = true)]
-    pub store: Option<PathBuf>,
+    pub path: Option<PathBuf>,
 
     #[command(subcommand)]
     pub command: Command,

@@ -114,7 +114,7 @@ fn test_put_with_custom_store() -> Result<(), Box<dyn std::error::Error>> {
 
     cmd.current_dir(workspace.path())
         .env("HASHB_DEFAULT_STORAGE", workspace.path())
-        .arg("--store")
+        .arg("--path")
         .arg(&store_path)
         .arg("put")
         .arg(file.path());
@@ -149,7 +149,7 @@ fn test_store_flag_overrides_env() -> Result<(), Box<dyn std::error::Error>> {
 
     cmd.current_dir(workspace.path())
         .env("HASHB_DEFAULT_STORAGE", &default_store)
-        .arg("--store")
+        .arg("--path")
         .arg(&custom_store)
         .arg("put")
         .write_stdin(input.as_slice());
@@ -183,7 +183,7 @@ fn test_put_stdin_with_custom_store() -> Result<(), Box<dyn std::error::Error>> 
 
     cmd.current_dir(workspace.path())
         .env("HASHB_DEFAULT_STORAGE", workspace.path())
-        .arg("--store")
+        .arg("--path")
         .arg(&store_path)
         .arg("put")
         .write_stdin(input.as_slice());
@@ -212,7 +212,7 @@ fn test_put_fails_if_custom_store_does_not_exist() -> Result<(), Box<dyn std::er
 
     cmd.current_dir(workspace.path())
         .env("HASHB_DEFAULT_STORAGE", workspace.path())
-        .arg("--store")
+        .arg("--path")
         .arg(&store_path)
         .arg("put")
         .write_stdin("test missing custom store");

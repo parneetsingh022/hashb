@@ -22,7 +22,7 @@ use crate::{
 fn main() -> anyhow::Result<()> {
     let args = Cli::parse();
 
-    let store_path = args.store;
+    let store_path = args.path;
 
     match args.command {
         Command::Put { file } => handle_put(file, store_path)?,
