@@ -13,20 +13,31 @@ use crate::{
     object::{Object, ObjectId, ObjectKind},
 };
 
-fn get_storage_dir() -> Result<PathBuf> {
-    // check path env HASHB_DEFAULT_STORAGE
-    if let Some(path) = env::var_os("HASHB_DEFAULT_STORAGE") {
+const STORAGE_ENV_VARIABLE: &str = "HASHB_DEFAULT_STORAGE";
+
+fn system_storage_dir() -> Result<PathBuf> {
+    let dirs = ProjectDirs::from("", "", "hashb").ok_or_else(|| {
+        io::Error::other("Could not determine the default application data directory.")
+    })?;
+
+    Ok(dirs.data_local_dir().to_path_buf())
+}
+
+fn get_storage_dir(env_path: Option<&Path>) -> Result<PathBuf> {
+    // check path in env variable
+    if let Some(path) = env_path {
+        if path.as_os_str().is_empty() {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "HASHB_DEFAULT_STORAGE cannot be empty",
+            )
+            .into());
+        }
         return Ok(PathBuf::from(path));
     }
 
     // Revert to default storage directory
-    let dirs = ProjectDirs::from("", "", "hashb")
-        .ok_or_else(|| io::Error::other(
-            "Could not determine the default application data directory. \
-            Please set the HASHB_DEFAULT_STORAGE environment variable to specify a storage path manually."
-        ))?;
-
-    Ok(dirs.data_local_dir().to_path_buf())
+    system_storage_dir()
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -47,7 +58,10 @@ impl ObjectStore {
                     path: path.as_ref().to_path_buf(),
                 });
             }
-            None => get_storage_dir()?,
+            None => {
+                let env_path = env::var_os(STORAGE_ENV_VARIABLE);
+                get_storage_dir(env_path.as_deref().map(Path::new))?
+            }
         };
 
         let temp_dir = root_path.join("tmp");
@@ -419,6 +433,66 @@ mod tests {
         } else {
             panic!("Expected Io error variant");
         }
+
+        Ok(())
+    }
+
+    #[test]
+    fn system_storage_dir_uses_platform_default() -> anyhow::Result<()> {
+        let actual = system_storage_dir()?;
+
+        let expected = ProjectDirs::from("", "", "hashb")
+            .ok_or_else(|| anyhow::anyhow!("Could not determine project directory"))?
+            .data_local_dir()
+            .to_path_buf();
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn get_storage_dir_uses_system_default_when_none() -> Result<()> {
+        let expected = system_storage_dir()?;
+        let actual = get_storage_dir(None)?;
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn get_storage_dir_rejects_empty_path() {
+        let result = get_storage_dir(Some(Path::new("")));
+
+        assert!(matches!(
+            result,
+            Err(Error::Io(ref err)) if err.kind() == io::ErrorKind::InvalidInput
+        ));
+    }
+
+    #[test]
+    fn get_storage_dir_uses_env_path() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+
+        let actual = get_storage_dir(Some(dir.path()))?;
+
+        assert_eq!(actual, dir.path());
+
+        Ok(())
+    }
+
+    #[test]
+    fn get_storage_dir_accepts_nonexistent_path() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        let path = dir.path().join("nonexistent");
+
+        assert!(!path.exists());
+
+        let actual = get_storage_dir(Some(&path))?;
+
+        assert_eq!(actual, path);
+        assert!(!path.exists());
 
         Ok(())
     }
