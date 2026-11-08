@@ -15,6 +15,10 @@ use crate::{
 
 const STORAGE_ENV_VARIABLE: &str = "HASHB_DEFAULT_STORAGE";
 
+/// Returns the platform-specific default storage directory for hashb.
+///
+/// Uses the operating system's local application data directory.
+/// Returns an error if the directory cannot be determined.
 fn system_storage_dir() -> Result<PathBuf> {
     let dirs = ProjectDirs::from("", "", "hashb").ok_or_else(|| {
         io::Error::other(format!(
@@ -26,6 +30,10 @@ fn system_storage_dir() -> Result<PathBuf> {
     Ok(dirs.data_local_dir().to_path_buf())
 }
 
+/// Resolves the storage directory, prioritizing the environment override.
+///
+/// Uses `env_path` when provided, otherwise falls back to the system default.
+/// Returns an error if the provided path is empty.
 fn get_storage_dir(env_path: Option<&Path>) -> Result<PathBuf> {
     // check path in env variable
     if let Some(path) = env_path {
